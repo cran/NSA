@@ -7,7 +7,7 @@
 #  @classhierarchy
 #
 #  This class represents the Sample normalization method [1], which 
-#  looks for normal regions within the tumoral samples.
+#  scales the total copy numbers sample by sample.
 # }
 #                                                                                                                                                          
 # @synopsis 
@@ -27,10 +27,6 @@
 #  @allmethods "public"  
 # }
 # 
-# \details{
-#   ...
-# }
-#
 #
 # \references{
 #   [1] ...
@@ -399,7 +395,7 @@ setMethodS3("findArraysTodo", "SampleNormalization", function(this, arrays, ...,
 ###########################################################################/**
 # @RdocMethod process
 #
-# @title "Finds normal regions within tumoral samples"
+# @title "Scaling of the copy number values sample by sample"
 #
 # \description{
 #  @get "title".
@@ -408,16 +404,17 @@ setMethodS3("findArraysTodo", "SampleNormalization", function(this, arrays, ...,
 # @synopsis
 #
 # \arguments{
-#   \item{...}{Additional arguments passed to 
-#     @see "aroma.light::normalizeFragmentLength" (only for advanced users).}
-#   \item{arrays}{Index vector indicating which samples to process.}
-#   \item{force}{If @TRUE, data already normalized is re-normalized, 
-#       otherwise not.}
+#   \item{this}(Object gerenated by SNPsNormalization.)
+#   \item{references}{@logical or @numeric @matrix saying which samples should be considered as normal, previously
+#                     calculated by @see "NSANormalization.".}
+#   \item{units}{@numeric @vector indicating the specific units to scale. The default value is "remaining".}
+#   \item{force}{@logical flag indicating if the already scaled units have to be scaled again. Initially set to FALSE.}
+#   \item{...}{Additional arguments passed to @see "SNPsNormalization".}
 #   \item{verbose}{See @see "R.utils::Verbose".}
 # }
 #
 # \value{
-#  Returns a @double @vector.
+#  Returns a @numeric @matrix.
 # }
 #   
 # \seealso{
@@ -535,60 +532,44 @@ setMethodS3("process", "SampleNormalization", function(this, arrays=NULL, refere
     dfout <- getFile(ds, sampleDone);
 
     df <- getFile(rsNR, kk);
-    
-#    for(chr in chromosomes){
-
-#      verbose && enter(verbose, sprintf("Chromosome %s", chr));
-#      units <- getUnitsOnChromosome(gi, chr);
-#      pos <- getPositions(gi, units = units);
-#      units <- units[order(pos)];
-
-      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      # Reading (total,fracB) data
-      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      verbose && enter(verbose, "Reading (total) data");
- #     total <- dfTotal[units,drop=TRUE];
-      total <- dfTotal[,drop=TRUE];
-      verbose && str(verbose, total);
-      verbose && exit(verbose);    
-
-      verbose && enter(verbose, "Reading normal regions");
-#      normalReg <- df[units,drop=TRUE];
-      normalReg <- df[,drop=TRUE];
-      verbose && str(verbose, normalReg);
-      verbose && exit(verbose);    
-
- 
-      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      # Finding Normal Regions
-      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   
-      verbose && enter(verbose, "Normalizing by sample:");
-      signals <- sampleNByTotalAndFracB(total, references = normalReg, ..., verbose=less(verbose,5));
-      verbose && exit(verbose);
-  
-      verbose && cat(verbose, "Signals:");
-      verbose && str(verbose, signals);
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Reading (total,fracB) data
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    verbose && enter(verbose, "Reading (total) data");
+    total <- dfTotal[,drop=TRUE];
+    verbose && str(verbose, total);
+    verbose && exit(verbose);    
 
-      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      # Storing normalized data
-      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      verbose && enter(verbose, "Storing normalized data");
-#      dfout[units,1] <- signals;
-      dfout[,1] <- signals;
-      rm(signals);
-#      verbose && exit(verbose);
-
-      verbose && exit(verbose);
-
-#   } #for chromosomes
+    verbose && enter(verbose, "Reading normal regions");
+    normalReg <- df[,drop=TRUE];
+    verbose && str(verbose, normalReg);
+    verbose && exit(verbose);    
 
 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Finding Normal Regions
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+    verbose && enter(verbose, "Normalizing by sample:");
+    signals <- sampleNByTotalAndFracB(total, references = normalReg, ..., verbose=less(verbose,5));
+    verbose && exit(verbose);
 
-  verbose && exit(verbose);
-  count <- count+1;
-} #for arrays
+    verbose && cat(verbose, "Signals:");
+    verbose && str(verbose, signals);
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Storing normalized data
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    verbose && enter(verbose, "Storing normalized data");
+    dfout[,1] <- signals;
+    rm(signals);
+
+    verbose && exit(verbose);
+
+    verbose && exit(verbose);
+    count <- count+1;
+  } #for arrays
   verbose && exit(verbose);
   invisible(res);
 })

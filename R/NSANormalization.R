@@ -27,10 +27,6 @@
 #  @allmethods "public"  
 # }
 # 
-# \details{
-#   ...
-# }
-#
 # \examples{\dontrun{
 #   @include "../incl/NSANormalization.Rex"
 # }}
@@ -370,13 +366,6 @@ setMethodS3("findArraysTodo", "NSANormalization", function(this, arrays, ..., ve
 
     verbose && print(verbose, df);
 
-#    filename <- gsub(" ", "", filename);
-    
-#    filename <- gsub("Mapping250K_Nsp","", filename);
-
-#    outputSamples <- gsub(" ", "", outputSamples);
-#    outputSamples <- gsub("(Mapping250K_Nsp)","", outputSamples);
-
     sampleDone <- match(filename, outputSamples);
 
     df <- getFile(dsOut, sampleDone);
@@ -505,7 +494,6 @@ setMethodS3("process", "NSANormalization", function(this, arrays=NULL, ..., forc
     filename <- getFilename(dfTotal);
     filename <- unlist(strsplit(filename, split=","))[1]
     verbose && print(verbose, dfTotal);
-#    sampleDone <- grep(filename, outputSamples);
     sampleDone <- match(filename, outputSamples);
 
     dfout <- getFile(ds, sampleDone);
